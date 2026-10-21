@@ -15,7 +15,7 @@ jobs:
       - name: Unpack project source
         run: |
           mkdir -p "$RUNNER_TEMP/source"
-          unzip -q notizklar-ios12-source.zip -d "$RUNNER_TEMP/source"
+          unzip -q notizklar-ios12-source-v2.zip -d "$RUNNER_TEMP/source"
           test -f "$RUNNER_TEMP/source/NotizKlar.xcodeproj/project.pbxproj"
       - name: Show Xcode version
         run: xcodebuild -version
