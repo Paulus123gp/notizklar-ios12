@@ -1,0 +1,162 @@
+name: Build NotizKlar IPA
+
+
+
+on:
+
+  push:
+  
+    branches: [main]
+    
+  workflow_dispatch:
+  
+
+
+permissions:
+
+  contents: read
+  
+
+
+jobs:
+
+  build-ipa:
+  
+    name: Build unsigned iOS IPA
+    
+    runs-on: macos-14
+    
+    steps:
+    
+      - name: Check out repository
+      
+        uses: actions/checkout@v4
+        
+
+
+      - name: Unpack project source
+      
+        run: |
+        
+          mkdir -p "$RUNNER_TEMP/source"
+          
+          unzip -q notizklar-ios12-source.zip -d "$RUNNER_TEMP/source"
+          
+          test -f "$RUNNER_TEMP/source/NotizKlar.xcodeproj/project.pbxproj"
+          
+
+
+      - name: Show Xcode version
+      
+        run: xcodebuild -version
+        
+
+
+      - name: Build for iPod touch (unsigned)
+      
+        run: |
+        
+          xcodebuild \
+          
+            -project "$RUNNER_TEMP/source/NotizKlar.xcodeproj" \
+            
+            -scheme NotizKlar \
+            
+            -configuration Release \
+            
+            -sdk iphoneos \
+            
+            -destination 'generic/platform=iOS' \
+            
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            
+            CODE_SIGNING_ALLOWED=NO \
+            
+            CODE_SIGNING_REQUIRED=NO \
+            
+            CODE_SIGN_IDENTITY="" \
+            
+            build
+            
+
+
+      - name: Package IPA
+      
+        run: |
+        
+          set -euo pipefail
+          
+          APP_PATH="$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/NotizKlar.app"
+          
+          test -d "$APP_PATH"
+          
+          mkdir -p "$RUNNER_TEMP/ipa/Payload"
+          
+          ditto "$APP_PATH" "$RUNNER_TEMP/ipa/Payload/NotizKlar.app"
+          
+          cd "$RUNNER_TEMP/ipa"
+          
+          /usr/bin/zip -qry "$RUNNER_TEMP/NotizKlar-unsigned.ipa" Payload
+          
+          test -s "$RUNNER_TEMP/NotizKlar-unsigned.ipa"
+          
+
+
+      - name: Upload IPA artifact
+      
+        uses: actions/upload-artifact@v4
+        
+        with:
+        
+          name: NotizKlar-unsigned-IPA
+          
+          path: ${{ runner.temp }}/NotizKlar-unsigned.ipa
+          
+          if-no-files-found: error
+          
+          retention-days: 7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
